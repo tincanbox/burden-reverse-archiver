@@ -1,0 +1,158 @@
+<!--
+
+  This is a really simple command tester.
+
+-->
+<script src="https://cdn.jsdelivr.net/npm/jquery.json-viewer@1.4.0/json-viewer/jquery.json-viewer.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery.json-viewer@1.4.0/json-viewer/jquery.json-viewer.css">
+
+<div class="row">
+
+  <div class="col-12">
+    <form id="form">
+
+      <div class="form-group">
+        <div class="input-group">
+          <input
+            class="form-control"
+            id="command"
+            name="command"
+            value="<%= ( query.command ) || "/sample/yahoo-news" %>">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text" id="uploading-addon">Upload</span>
+          </div>
+          <div class="custom-file">
+            <input type="file" class="custom-file-input" id="upload" name="upload" aria-describedby="uploading-addon" placeholder="Choose File...">
+            <label class="custom-file-label" for="upload"></label>
+          </div>
+        </div>
+      </div>
+    </form>
+    <button class="btn btn-outline-primary" id="btn-sample">Run</button>
+  </div>
+
+  <div class="col-12" id="result-preview">
+  </div>
+
+</div>
+
+<script type="text/javascript">
+(() => {
+
+  var loading_timer = null;
+
+  function run_command(){
+    var d = retrieve_command();
+    proc_waiting();
+    $.ajax({
+      type: "post",
+      url: "/run/" + d.command,
+      data: new FormData($('#form')[0]),
+      processData: false,
+      contentType: false,
+      complete: (r) => {
+        var result = r.responseJSON || false;
+        if(result && result.status){
+          proc_waiting(false);
+          proc_success(result);
+        }else{
+          proc_waiting(false);
+          proc_aborted(result || r);
+        }
+      },
+      error: (r) => {
+        proc_error(r);
+      }
+    })
+  }
+
+  function retrieve_command(){
+    var f = $('#command').val();
+    var d = {};
+    d.command = f;
+    return d;
+  }
+
+  function render_result(data){
+    var box = $('#result-preview');
+    box.jsonViewer(data);
+  }
+
+  function proc_waiting(num){
+    var ln = 5;
+    var tm = 1000;
+    var sh = {"Loading": ""};
+    if(num == undefined){
+      sh.Loading = ".";
+      render_result(sh);
+      loading_timer = setTimeout(() => {
+        proc_waiting(2);
+      }, tm);
+    }else{
+      if(num == false){
+        clearTimeout(loading_timer);
+      }else{
+        if(num <= ln){
+          sh.Loading = Array(num).fill(".").join("");
+          render_result(sh);
+        }else{
+          num = 1;
+          sh.Loading = ".";
+          render_result(sh);
+        }
+        loading_timer = setTimeout(() => {
+          proc_waiting(num + 1);
+        }, tm);
+
+      }
+    }
+  }
+
+  function proc_success(result){
+    render_result(result);
+  }
+
+  function proc_aborted(r){
+    render_result(r);
+  }
+
+  function proc_error(r){
+    render_result(r);
+  }
+
+  function reset_file_input(input){
+    input.val("");
+    input.siblings('.custom-file-label').text(input.attr("placeholder"));
+  }
+
+  $(window).on('load', () => {
+    reset_file_input($(':file'));
+  });
+
+  $('#container').on('click', '#btn-sample', () => {
+    run_command();
+  });
+
+  $('#container').on('click', ':file', function(){
+    reset_file_input($(this));
+  });
+
+  $('#container').on('change', ':file', function(){
+    var
+      input = $(this),
+      label = input.val().replace(/\\/g, '/').replace(/.*\//, '')
+    ;
+    if(label){
+      input.siblings('.custom-file-label').text(label);
+    }else{
+      reset_file_input(input);
+    }
+  });
+
+})();
+</script>

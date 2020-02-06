@@ -1,0 +1,10 @@
+<pre style="font-family: Consolas, 'Courier New', monospace;">
+Status: <%= result.status %>
+<% if(result.error.length){
+%>Errors:
+  <%
+  for(var err of result.error){
+    %><%= err %><% }} %>
+Returned Values:
+<%= JSON.stringify(result.data) %>
+</pre>

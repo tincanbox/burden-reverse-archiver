@@ -1,0 +1,20 @@
+{
+  "name": "colloquist-archiver",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "archiver": "^3.1.1",
+    "colloquist": "tincanbox/colloquist#v2.0",
+    "decompress": "^4.2.0",
+    "encoding-japanese": "^1.0.30",
+    "iconv-lite": "^0.5.1",
+    "unzipper": "^0.10.8",
+    "yauzl": "^2.10.0"
+  }
+}

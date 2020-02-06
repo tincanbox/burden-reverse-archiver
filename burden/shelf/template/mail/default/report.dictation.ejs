@@ -1,0 +1,28 @@
+<pre style="font-family: Consolas, 'Courier New', monospace;">
+=============================
+Success: <%= dictation_list.filter((r) => { return r.status == true; }).length %>
+Failure: <%= dictation_list.filter((r) => { return r.status == false; }).length %>
+<% for(var row of dictation_list){ %>
+_____________________________
+Name:       <%= row.uri %>
+Status:     <%= row.status %>
+Start:      <%= row.started_at %>
+Finished:   <%= row.finished_at %>
+- - - - - - - - - - - - - - -
+Premise:
+<% for(var k in row.premise){ %><%= k %> = <%= row.premise[k] %>
+<% } %>
+- - - - - - - - - - - - - - -
+Errors
+<% row.error.map((e) => {
+%><%= FM.vr.stringify(e) %>
+<% }) %>
+
+Log
+<% for(var k in row.memory){ %>
+  <%= k %> =
+  <%= FM.vr.stringify(row.memory[k]) %>
+<% } %>
+<% } %>
+=========== EOF ============
+</pre>
