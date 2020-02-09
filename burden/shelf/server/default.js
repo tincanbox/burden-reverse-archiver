@@ -11,10 +11,10 @@ const uuid = require('uuid');
 
 module.exports = class {
 
-  constructor(core, engine, config){
+  constructor(core, config){
     this.core = core;
     this.config = config;
-    this.engine = engine;
+    this.engine = new this.core.server.framework;
     this.code_list = require('./codes.json');
     /* Blocking URL RegExp list */
     this.block_list = [
@@ -27,9 +27,19 @@ module.exports = class {
   /* @required
    */
   async init(/* pass what you want from config/server.prepare file. */){
+
+    let e = this.engine;
+
+    //e.use(this.core.server.framework.json());
+    //e.use(this.core.server.framework.urlencoded());
+    e.use(this.core.server.session(this.config.session || {}));
+
     await this.bind_pre_middleware();
     await this.bind_route();
     await this.bind_post_middleware();
+
+    e.listen(this.config.port);
+    this.core.debug("Server is listening on Port:" + this.config.port);
   }
 
   /* Closes express.Response with specific http-code.
@@ -52,7 +62,10 @@ module.exports = class {
     // Global Handler
     this.engine.use('*', (req, res, next) => {
       /* DO SOME GLOBAL THINGS. */
-      req.uuid = uuid();
+      console.log("Requested URL: ", req.url);
+      req.token = uuid();
+      req.body = req.body || {};
+      req.query = req.query || {};
       next();
     });
     // Bloking
@@ -67,18 +80,30 @@ module.exports = class {
       }
       next();
     });
+    this.engine.use((req, res, next) => {
+      this.retrieve(req)
+        .then(() => {
+          next();
+        })
+        .catch((e) => {
+          this.send_error(res, e);
+        })
+    })
     // Assets
-    if(this.config.asset && this.config.asset.length){
+    if(this.config.expose && this.config.expose.length){
       try{
         let bs = this.core.config.path.burden;
-        for(let f of this.config.asset){
+        for(let f of this.config.expose){
           // [name, path]
           let nm = f[0], pt = f[1];
-          let p = path.resolve( pt.match(/^\//) ? pt : bs + pt);
+          let p = path.resolve(pt.match(/^\//) ? pt : bs + pt);
           let st = await fs.stat(p);
           if(!st.isDirectory(p))
             throw new Error("asset path is not a directory.");
           this.engine.use('/' + nm, this.core.server.framework.static(p));
+          this.config.path = this.config.path || {};
+          this.config.path.expose = this.config.path.expose || {};
+          this.config.path.expose[nm] = p;
           this.core.debug("asset path: " + nm + " => " + p);
         }
       }catch(e){
@@ -107,16 +132,21 @@ module.exports = class {
     });
 
     this.engine.get('/run/*', (req, res, next) => {
-      res.type('json');
+      console.log("running", req.url);
       this.redirect_request(req, res, next);
     });
 
     this.engine.post('/run/*', (req, res, next) => {
-      res.type('json');
-      this.retrieve_upload_file(req)
-        .then(() => {
-          this.redirect_request(req, res, next);
-        })
+      console.log("running", req.url);
+      this.redirect_request(req, res, next);
+    });
+
+    this.engine.get('/bucket', (req, res, next) => {
+      if(req.query.file){
+        res.download(this.config.path.expose.bucket + path.sep + req.query.file);
+        return;
+      }
+      this.close(res, 404);
     });
 
     this.engine.get('/*', (req, res) => {
@@ -137,23 +167,64 @@ module.exports = class {
           res.send(t);
         })
         .catch((e) => {
-          this.close(res, 404, (res) => { res.end(e.message); });
+          this.close(res, 404, (res) => { this.send_error(res, e); });
         });
     });
 
   }
 
-  /* Retrieves uploaded files info as
-   * {name_of_input: IncomingForm}
+  async send_error(res, content){
+    let msg;
+    if(content instanceof Error){
+      msg = content.message;
+    }
+    if(typeof content == "string"){
+      msg = content;
+    }
+    msg = JSON.stringify(content);
+    switch(res.type){
+      case 'html':
+        res.end(msg);
+        break;
+      case 'json':
+        res.json({ error: msg });
+        break;
+    }
+    return true;
+  }
+
+  /* Retrieves posted form-data
    */
-  async retrieve_upload_file(req){
+  async retrieve(req){
     return new Promise((resolve, reject) => {
-      let f = new formidable.IncomingForm();
-      f.parse(req, (err, fields, files) => {
+      let form = new formidable.IncomingForm();
+      let fds = [];
+      // Events
+      form
+        .on('field', function (k, v) {
+          fds.push([k, v]);
+        })
+        .on('error', function(err){
+          console.error("ServerFormParseError: ", err.message);
+          console.error(err);
+          reject(err);
+        })
+        .on('file', function (field, file) {
+          req.file = req.file || {};
+          req.file[field] = file;
+        })
+        .on('aborted', function (err) {
+          console.log("Aborted");
+        })
+        .on('end', function () {
+          let o = FM.ob.unserialize(fds);
+          req.body = Object.assign(req.body || {}, o);
+        });
+      // lets go
+      form.parse(req, (err, fields, files) => {
         if(err){
           reject(err);
         }else{
-          req.file = files;
           resolve(req);
         }
       });
@@ -167,21 +238,32 @@ module.exports = class {
     if(!t){
       res.status(404).end();
     }else{
-      await this.core.tell(
-        t,
-        {...(req.query || {}), ...(req.body || {}), ...{request: req, response: res} }
-      )
-      .then((r) => res.json(r));
+      let p = {...(req.query || {}), ...(req.body || {}), ...{file: req.file || {}} };
+      Object.defineProperty(p, 'server', {value: this, enumerable: false});
+      Object.defineProperty(p, 'request', {value: req, enumerable: false});
+      Object.defineProperty(p, 'response', {value: res, enumerable: false});
+      await this.core.tell(t, p)
+      .then((r) => {
+        res.type('json');
+        return res.json({
+          data: r
+        })
+      })
+      .catch((e) => {
+        res.type('json');
+        return res.json({
+          error: e
+        });
+      });
     }
   }
 
   /* Generates rendered HTML with template-path.
    */
   async render(pathcomp, data){
-    let t = await this.core.template.read(pathcomp);
     let d = FM.ob.merge({}, {yield:"", data:{}}, data);
-    let v = await this.core.template.render(t, d);
-    return v;
+    let r = await this.core.template.load(pathcomp, d);
+    return r;
   }
 
   /* Generates HTML as yielded contents with view/layout.
@@ -190,9 +272,8 @@ module.exports = class {
     let rg = new RegExp("^/" + group);
     let t = req.url.split("?").shift().replace(rg, "").replace(/^\//, "");
     t = "view/" + (t || "index");
-    console.log("View Request:", t);
     let m = FM.ob.merge({
-      token: req.uuid,
+      token: req.token,
       query: req.query || {},
       post: req.body || {},
     }, param);

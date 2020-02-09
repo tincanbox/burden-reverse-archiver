@@ -14,7 +14,6 @@
     "decompress": "^4.2.0",
     "encoding-japanese": "^1.0.30",
     "iconv-lite": "^0.5.1",
-    "unzipper": "^0.10.8",
-    "yauzl": "^2.10.0"
+    "unzipper": "^0.10.8"
   }
 }

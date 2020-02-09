@@ -15,8 +15,9 @@ module.exports = {
      * string starting with non-`/` char will be treated as the relative-path from `burden`.
      * your/pub/in/burden
      */
-    asset: [
-      // ["static", "your/public/in/burden"]
+    expose: [
+      ["asset", "shelf/server/public/asset"],
+      ["bucket", "shelf/server/public/bucket"],
     ],
 
     session: {
@@ -30,18 +31,8 @@ module.exports = {
      */
     prepare: async (core, handler, config) => {
       /* Do Your Things. */
-      let f = core.server.framework;
-      var e = new f();
-      e.use(f.json());
-      e.use(f.urlencoded({ extended: true }));
-      e.use(core.server.session(config.session || {}));
-
-      let con = new handler(core, e, config);
+      let con = new handler(core, config);
       await con.init();
-
-      e.listen(config.port);
-      core.debug("Server is listening on Port:" + config.port);
-
       return con;
     }
   }

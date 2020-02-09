@@ -1,0 +1,84 @@
+<template id="template--form-upload">
+  <section>
+    <div class="form-group">
+      <form-upload-file
+        v-bind:stat="stat"
+        ></form-upload-file>
+    </div>
+
+    <div v-if="stat.decomped" v-hidden>
+      <label>保存時アーカイブ名フォーマット</label>
+      <div class="form-group">
+        <input class="form-control" name="archive_name_format" value="%name%">
+      </div>
+
+      <label>保存時コンテンツ名フォーマット</label>
+      <div class="form-group">
+        <input class="form-control" name="entry_name_format" value="%group%_%subgroup%">
+      </div>
+
+      <label>置換設定（再圧縮後のファイル・ディレクトリ名に含まれる文字を置換します。）</label>
+      <div class="form-group">
+        <button
+           class="btn btn-info action-add-replacer-row"
+           v-on:click="add_row">Add</button>
+      </div>
+      <form-upload-replacer
+           v-bind:stat="stat"
+           ></form-upload-replacer>
+    </div>
+
+</section>
+</template>
+
+<template id="template--form-upload-file">
+  <div class="input-group">
+    <div class="input-group-prepend">
+      <span class="input-group-text" id="uploading-addon">ZIPファイル選択</span>
+    </div>
+    <div class="custom-file">
+      <input
+        id="upload"
+        type="file"
+        class="custom-file-input"
+        name="upload"
+        aria-describedby="uploading-addon"
+        placeholder=""
+        v-on:change="update"
+        >
+      <label class="custom-file-label" for="upload"></label>
+    </div>
+  </div>
+</template>
+
+<template id="template--form-upload-replacer">
+<section>
+  <div
+    class="replacer row form-group"
+    v-for="r of stat.replacer">
+    <div class="col-md-6">
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <span class="input-group-text">FROM</span>
+        </div>
+        <input class="form-control"
+          name="replacer-from[]"
+          v-model="r.from">
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <span class="input-group-text">TO</span>
+        </div>
+        <input
+          class="form-control"
+          name="replacer-to[]"
+          v-model="r.to">
+      </div>
+    </div>
+  </div>
+</section>
+</template>
+
+<script src="/asset/script/component/form-upload.js"></script>
