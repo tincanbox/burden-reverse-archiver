@@ -6,7 +6,27 @@
         ></form-upload-file>
     </div>
 
+    <!--
+
+      AFTER GENERATION
+
+    -->
+
     <div v-if="stat.decomped" v-hidden>
+
+      <div class="form-group">
+        <div class="form-check">
+          <input
+            class="form-check-input"
+            type="checkbox"
+            id="form-input-archive_each_content"
+            name="archive_each_content">
+          <label class="form-check-label" for="form-input-archive_each_content">
+            各エントリー毎のディレクトリをZIP形式で圧縮する。
+          </label>
+        </div>
+      </div>
+
       <label>保存時アーカイブ名フォーマット</label>
       <div class="form-group">
         <input class="form-control" name="archive_name_format" value="%name%">

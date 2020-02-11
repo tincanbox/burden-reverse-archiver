@@ -81,23 +81,24 @@
 
   function retrieve_packed_zip(){
     let rp = {
-          token: ACCESS_TOKEN,
-          mode: 'pack',
-          archive_name_format: $('[name="archive_name_format"]').val(),
-          entry_name_format: $('[name="entry_name_format"]').val(),
-          replacer: (() => {
-            let ret = [];
-            let from = $('[name^=replacer-from]');
-            let to = $('[name^=replacer-to]');
-            from.each((i) => {
-              ret.push({
-                from: from.eq(i).val(),
-                to: to.eq(i).val()
-              });
-            });
-            return ret;
-          })()
-        };
+      token: ACCESS_TOKEN,
+      mode: 'pack',
+      archive_name_format: $('[name="archive_name_format"]').val(),
+      entry_name_format: $('[name="entry_name_format"]').val(),
+      archive_each_content: $('[name="archive_each_content"]').val(),
+      replacer: (() => {
+        let ret = [];
+        let from = $('[name^=replacer-from]');
+        let to = $('[name^=replacer-to]');
+        from.each((i) => {
+          ret.push({
+            from: from.eq(i).val(),
+            to: to.eq(i).val()
+          });
+        });
+        return ret;
+      })()
+    };
     return new Promise((res, rej) => {
       $.ajax({
         type: "post",

@@ -182,21 +182,41 @@ module.exports = class extends Story {
           .replace("%number%", number)
         ;
 
-      await this.pack('zip', { zlib: { level: 9 } },
-        this.path.result + path.sep + archive_name + '.zip',
-        o.files.map((ov, i) => {
-          let archive_entry_name =
-            this.format.archive_entry_name
+      if(param.archive_each_content){
+        await this.pack('zip', { zlib: { level: 9 } },
+          this.path.result + path.sep + archive_name + '.zip',
+          o.files.map((ov, i) => {
+            let archive_entry_name =
+              this.format.archive_entry_name
               .replace("%name%", o.name)
               .replace("%group%", ov.group)
               .replace("%subgroup%", ov.hier.join("-"))
               .replace("%number%", number)
               .replace("%index%", i)
             ;
+            archive_entry_name = archive_entry_name.replace(/_$/, "");
+            return [ov.path, archive_entry_name]
+          })
+        );
+      }else{
+        var p = this.path.result + path.sep + archive_name;
+        var i = 0;
+        await fsx.mkdirp(p);
+        for(var f of o.files){
+          let archive_entry_name =
+            this.format.archive_entry_name
+            .replace("%name%", o.name)
+            .replace("%group%", f.group)
+            .replace("%subgroup%", f.hier.join("-"))
+            .replace("%number%", number)
+            .replace("%index%", i)
+          ;
           archive_entry_name = archive_entry_name.replace(/_$/, "");
-          return [ov.path, archive_entry_name]
-        })
-      );
+          var ex = path.extname(f.path);
+          await fsx.copy(f.path, p + path.sep + archive_entry_name + ex);
+          i++;
+        }
+      }
     }
 
     let dest_comp_file_path = this.path.working + path.sep + 'download.zip';
