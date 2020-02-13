@@ -319,7 +319,7 @@ module.exports = class extends Story {
   async unpack(file, dest_dir){
     let files = [];
     let zip_file_path = file.path;
-    let trail = (new RegExp(path.sep + "$"));
+    let trail = (new RegExp("(\\\\|/)$"));
     let zip_fnsp = file.name.split(".");
     let zip_fext = zip_fnsp.pop();
     let zip_fbsn = zip_fnsp.join(".");
@@ -332,6 +332,7 @@ module.exports = class extends Story {
             let enc = EncodingJP.detect(entry.props.pathBuffer);
             let f = iconv.decode(entry.props.pathBuffer, enc);
             if(trail.test(f)){
+              await fsp.mkdir(dest_dir + path.sep + f);
               entry.autodrain();
             }else{
               let fnsp = f.split(".");
