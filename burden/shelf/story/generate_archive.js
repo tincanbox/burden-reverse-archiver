@@ -243,7 +243,12 @@ module.exports = class extends Story {
     if(!param.file.archive){
       throw new Error("Empty");
     }
-    if(param.file.archive.type != "application/zip"){
+    if([
+      "application/zip",
+      "application/octet-stream",
+      "application/x-zip-compressed",
+      "multipart/x-zip"
+    ].indexOf(param.file.archive.type) < 0){
       throw new Error("Only ZIP is supported. => " + param.file.archive.type);
     }
     let r = await this.unpack(param.file.archive, this.path.content);

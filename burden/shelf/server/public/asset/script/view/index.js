@@ -85,7 +85,7 @@
       mode: 'pack',
       archive_name_format: $('[name="archive_name_format"]').val(),
       entry_name_format: $('[name="entry_name_format"]').val(),
-      archive_each_content: $('[name="archive_each_content"]').val(),
+      archive_each_content: $('[name="archive_each_content"]').attr("checked"),
       replacer: (() => {
         let ret = [];
         let from = $('[name^=replacer-from]');
