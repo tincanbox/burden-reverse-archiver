@@ -48,15 +48,14 @@
 
         <div class="form-group">
           <label>各エントリー</label>
-          <input class="form-control" name="entry_name_format" value="%group%_%subgroup%">
+          <input class="form-control" name="entry_name_format" value="%hier%">
         </div>
-
 
         <label>置換設定（再圧縮後のファイル・ディレクトリ名に含まれる文字を置換します。）</label>
         <p><small>
         Group01/Yamada.pdf, Group02/MrYamada.pdf のように、
-        ファイル名が統一されていない場合に特定の文字列を置換してからマッチングを行います。
-        (この例の場合は FROM="Mr" TO="" とする)
+        ファイル名が統一されていない場合に特定の文字列を置換して結果が同じになる場合は同一のエントリーとして扱います。
+        <br> FROM="Mr" TO="" とした場合、上記の２ファイルは Yamada/Group01.pdf, Yamada/Group02.pdf に変換されます。
         </small></p>
 
 

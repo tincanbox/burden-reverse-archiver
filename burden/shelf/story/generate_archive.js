@@ -81,7 +81,6 @@ module.exports = class extends Story {
           if(r.download_path){
             let res = this.scene.argument.response
             let fn = param.token + '.zip';
-            console.log(this.scene.argument.server.config);
             let dp
               = this.scene.argument.server.config.path.expose.bucket
                 + path.sep + fn;
@@ -93,7 +92,44 @@ module.exports = class extends Story {
           break;
         case "unpack":
           var r = await this.action_decompress_file(param);
-          return {count: r.length};
+          var tree = { content:[] };
+          for(var p of r.data){
+            var rpr = p.replace(this.path.content, "");
+            var rprsp = rpr.split(path.sep).filter(a => a);
+            var dp = 0;
+            var pr = tree;
+            for(var en of rprsp){
+              var eno = {
+                name: en,
+                content: []
+              };
+              if(rprsp[dp + 1]){
+                eno.type = "dir";
+                var m = null;
+                for(var cn of pr.content){
+                  if(cn.name == eno.name){
+                    m = cn;
+                    break;
+                  }
+                }
+                if(m){
+                }else{
+                  pr.content.push(eno);
+                }
+                pr = eno;
+                // has next
+              }else{
+                eno.type = "file";
+                pr.content.push(eno);
+                break;
+              }
+              dp++;
+            }
+          }
+          return {
+            count: r.length,
+            structure: tree
+          };
           break;
         default:
           this.abort("invalid proc mode");
@@ -113,7 +149,7 @@ module.exports = class extends Story {
       console.error(e);
     }
 
-    var result = {};
+    var result = [];
     /*==================================================
     */
 
@@ -149,7 +185,6 @@ module.exports = class extends Story {
         result  = await this.generate_converted_structure(result, entry_path);
       }else{
         // File
-        console.log("@TODO!! for file handling");
         await fsx.mkdirp(nogroup_dd);
         await fsp.copyFile(entry_path, nogroup_dd + path.sep + entry_name);
         continue;
@@ -166,54 +201,26 @@ module.exports = class extends Story {
     }
 
     let number = 0;
-    for(let k in result){
+    for(let o of result){
       number++;
-      let o = result[k];
+
       console.log("----------");
       console.log(o.name);
-      for(let ofile of o.files){
-        console.log("  =>", ofile.group + " " + ofile.hier.join(","));
-      }
-
-      let lname =
-        this.format.group_name
-          .replace("%name%", o.name)
-          .replace("%count%", o.files.length)
-          .replace("%number%", number)
-        ;
 
       if(param.toggle_archive_each_content){
         await this.pack('zip', { zlib: { level: 9 } },
-          this.path.result + path.sep + lname + '.zip',
+          this.path.result + path.sep + o.format + '.zip',
           o.files.map((ov, i) => {
-            let entry_name =
-              this.format.entry_name
-              .replace("%name%", o.name)
-              .replace("%group%", ov.group)
-              .replace("%subgroup%", ov.hier.join("-"))
-              .replace("%number%", number)
-              .replace("%index%", i)
-            ;
-            entry_name = entry_name.replace(/_$/, "");
-            return [ov.path, entry_name]
+            return [ov.path, ov.format]
           })
         );
       }else{
-        var p = this.path.result + path.sep + lname;
+        var p = this.path.result + path.sep + o.format;
         var i = 0;
         await fsx.mkdirp(p);
         for(var f of o.files){
-          let entry_name =
-            this.format.entry_name
-            .replace("%name%", o.name)
-            .replace("%group%", f.group)
-            .replace("%subgroup%", f.hier.join("-"))
-            .replace("%number%", number)
-            .replace("%index%", i)
-          ;
-          entry_name = entry_name.replace(/_$/, "");
           var ex = path.extname(f.path);
-          await fsx.copy(f.path, p + path.sep + entry_name + ex);
+          await fsx.copy(f.path, p + path.sep + f.format + ex);
           i++;
         }
       }
@@ -379,6 +386,8 @@ module.exports = class extends Story {
       throw new Error("invalid content dir name");
     }
 
+    hier.push(gid);
+
     let sub_entry_list = await fsp.readdir(entry_path);
     for(let sub_entry_name of sub_entry_list){
       let sub_entry_path = entry_path + path.sep + sub_entry_name;
@@ -386,8 +395,7 @@ module.exports = class extends Story {
 
       // Recursion.
       if(st.isDirectory()){
-        let hier_renamed = this.replace_entry('directory', sub_entry_name);
-        dict = await this.generate_converted_structure(dict, sub_entry_path, hier.concat(hier_renamed));
+        dict = await this.generate_converted_structure(dict, sub_entry_path, hier);
         continue;
       }
 
@@ -398,16 +406,54 @@ module.exports = class extends Story {
       idsp.pop(); // Trims shitty ext.
       id = idsp.join(".");
 
-      dict[id] = dict[id] || {
-        name: id,
-        files: []
-      };
-      dict[id].files.push({
+      var mt = null;
+      for(var dik of dict){
+        if(dik.name == id){
+          mt = dik;
+          break;
+        }
+      }
+      if(!mt){
+        mt = {
+          name: id,
+          format: "",
+          files: []
+        };
+        dict.push(mt);
+      }
+
+      var ent = {
         group: gid,
+        format: "",
         hier: hier,
         path: sub_entry_path
-      });
+      };
+      mt.files.push(ent);
     }
+
+    for( var d_i = 0; d_i < dict.length; d_i++ ){
+      var d = dict[d_i];
+      d.format
+        = this.format.group_name
+        .replace("%name%", d.name)
+        .replace("%count%", d.files.length)
+        .replace("%number%", d_i + 1)
+      ;
+
+      for(var i = 0; i < d.files.length; i ++){
+        var ent = d.files[i];
+        ent.format
+          = this.format.entry_name
+          .replace("%name%", d.name)
+          .replace("%group%", ent.group)
+          .replace("%hier%", ent.hier.join("--"))
+          .replace("%number%", d_i + 1)
+          .replace("%index%", i)
+        ;
+        ent.format = ent.format.replace(/_$/, "");
+      }
+    }
+
 
     return dict;
   }

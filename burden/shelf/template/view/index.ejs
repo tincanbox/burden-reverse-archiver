@@ -32,19 +32,34 @@
           <tbody>
           <tr>
             <td>
-              <div>
-                <div><i class="fa fa-folder-open"></i> グループ１/</div>
-                <div class="ml-4">Yamada.pdf, Yamada.jpeg, Suzuki.pdf</div>
+              <div v-if="decomped">
+                Data
+                <div v-for="s of decomped.structure.content">
+                  <div>
+                    <i
+                      class="fa"
+                      v-bind:class="s.type == 'dir' ? 'fa-folder-open' : 'fa-file'"></i>
+                    {{ s.name }}
+                  </div>
+                  <div v-if="s.content.length">
+                    <div class="ml-4">{{ s.content.map((a) => { return a.name }).join(", ") }}</div>
+                  </div>
+                </div>
               </div>
-              <div>
-                <div><i class="fa fa-folder-open"></i> グループ２/</div>
-                <div class="ml-4">Suzuki.pdf, 渡邊.pdf</div>
+              <div v-else>
+                <div>
+                  <div><i class="fa fa-folder-open"></i> グループ１/</div>
+                  <div class="ml-4">Yamada.pdf, Yamada.jpeg, Suzuki.pdf</div>
+                </div>
+                <div>
+                  <div><i class="fa fa-folder-open"></i> グループ２/</div>
+                  <div class="ml-4">Suzuki.pdf, 渡邊.pdf</div>
+                </div>
+                <div>
+                  <div><i class="fa fa-folder-open"></i> グループ３/</div>
+                  <div class="ml-4">Yamada.pdf</div>
+                </div>
               </div>
-              <div>
-                <div><i class="fa fa-folder-open"></i> グループ３/</div>
-                <div class="ml-4">Yamada.pdf</div>
-              </div>
-
             </td>
             <td><i class="fas fa-arrow-alt-circle-right" style="font-size: 2em; margin: 1em;"></i></td>
             <td>
