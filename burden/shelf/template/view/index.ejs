@@ -18,6 +18,54 @@
           ><i class="fas fa-cloud-download-alt"></i>&nbsp;Download</button>
       </div>
 
+      <div class="form-group">
+        <p><small>
+        以下のような構成のディレクトリを、After のように内容のファイル名と反転して再圧縮します。
+        <br>『各社毎に個人用資料を作成したので、メール用に個人ごとにまとめなおす』・『外部サービスから出力した個人別のデータを個人IDを基準にまとめる』などに利用可能です。 ※ 内容にディレクトリが含まれる場合は、再帰的にトップの階層に保存されます。
+        </small></p>
+        <table class="table" style="font-size: .75em;">
+          <thead>
+            <th>Before</th>
+            <th></th>
+            <th>After</th>
+          </thead>
+          <tbody>
+          <tr>
+            <td>
+              <div>
+                <div><i class="fa fa-folder-open"></i> グループ１/</div>
+                <div class="ml-4">Yamada.pdf, Yamada.jpeg, Suzuki.pdf</div>
+              </div>
+              <div>
+                <div><i class="fa fa-folder-open"></i> グループ２/</div>
+                <div class="ml-4">Suzuki.pdf, 渡邊.pdf</div>
+              </div>
+              <div>
+                <div><i class="fa fa-folder-open"></i> グループ３/</div>
+                <div class="ml-4">Yamada.pdf</div>
+              </div>
+
+            </td>
+            <td><i class="fas fa-arrow-alt-circle-right" style="font-size: 2em; margin: 1em;"></i></td>
+            <td>
+              <div>
+                <div><i class="fa fa-folder-open"></i> Yamada/</div>
+                <div class="ml-4">グループ１.pdf, グループ１.jpeg, グループ３.pdf</div>
+              </div>
+              <div>
+                <div><i class="fa fa-folder-open"></i> Suzuki</div>
+                <div class="ml-4">グループ１.pdf, グループ２.pdf</div>
+              </div>
+              <div>
+                <div><i class="fa fa-folder-open"></i> 渡邊</div>
+                <div class="ml-4">グループ２.pdf</div>
+              </div>
+            <td>
+          </tr>
+          <tbody>
+        </table>
+      </div>
+
       <form-upload
         v-bind:stat="form"
         ></form-upload>

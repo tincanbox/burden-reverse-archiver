@@ -83,9 +83,9 @@
     let rp = {
       token: ACCESS_TOKEN,
       mode: 'pack',
-      archive_name_format: $('[name="archive_name_format"]').val(),
+      group_name_format: $('[name="group_name_format"]').val(),
       entry_name_format: $('[name="entry_name_format"]').val(),
-      archive_each_content: $('[name="archive_each_content"]').attr("checked"),
+      toggle_archive_each_content: $('[name="toggle_archive_each_content"]').attr("checked"),
       replacer: (() => {
         let ret = [];
         let from = $('[name^=replacer-from]');

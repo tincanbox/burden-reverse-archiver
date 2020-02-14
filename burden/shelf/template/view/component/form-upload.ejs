@@ -19,34 +19,58 @@
           <input
             class="form-check-input"
             type="checkbox"
-            id="form-input-archive_each_content"
-            name="archive_each_content"
-            >
-          <label class="form-check-label" for="form-input-archive_each_content">
+            id="form-input-toggle_archive_each_content"
+            name="toggle_archive_each_content">
+          <label class="form-check-label" for="form-input-toggle_archive_each_content">
             各エントリー毎のディレクトリをZIP形式で圧縮する。
           </label>
+          <p class="text-muted"><small>
+            デフォルトでは各エントリーはディレクトリとして分けられ、そのまま保存されますが、
+            その分別後のディレクトリをZIP形式で圧縮します。
+            ※ 
+          </small></p>
         </div>
       </div>
 
-      <label>保存時アーカイブ名フォーマット</label>
       <div class="form-group">
-        <input class="form-control" name="archive_name_format" value="%name%">
+
+        <label>保存時エントリー名フォーマット</label>
+        <p><small>
+        保存する際の名称を設定します。
+        Group01/Yamada.pdf を Yamada様/Group01_資料.pdf のように、
+        特定の文字を付与する場合などに変更します。
+        </small></p>
+
+        <div class="form-group">
+          <label>グループ名フォーマット</label>
+          <input class="form-control" name="group_name_format" value="%name%">
+        </div>
+
+        <div class="form-group">
+          <label>各エントリー</label>
+          <input class="form-control" name="entry_name_format" value="%group%_%subgroup%">
+        </div>
+
+
+        <label>置換設定（再圧縮後のファイル・ディレクトリ名に含まれる文字を置換します。）</label>
+        <p><small>
+        Group01/Yamada.pdf, Group02/MrYamada.pdf のように、
+        ファイル名が統一されていない場合に特定の文字列を置換してからマッチングを行います。
+        (この例の場合は FROM="Mr" TO="" とする)
+        </small></p>
+
+
+        <div class="form-group">
+          <button
+             class="btn btn-info action-add-replacer-row"
+             v-on:click="add_row">Add</button>
+        </div>
+        <form-upload-replacer
+             v-bind:stat="stat"
+             ></form-upload-replacer>
+
       </div>
 
-      <label>保存時コンテンツ名フォーマット</label>
-      <div class="form-group">
-        <input class="form-control" name="entry_name_format" value="%group%_%subgroup%">
-      </div>
-
-      <label>置換設定（再圧縮後のファイル・ディレクトリ名に含まれる文字を置換します。）</label>
-      <div class="form-group">
-        <button
-           class="btn btn-info action-add-replacer-row"
-           v-on:click="add_row">Add</button>
-      </div>
-      <form-upload-replacer
-           v-bind:stat="stat"
-           ></form-upload-replacer>
     </div>
 
 </section>

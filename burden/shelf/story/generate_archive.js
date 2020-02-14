@@ -66,8 +66,8 @@ module.exports = class extends Story {
     await this.rotate_directory(this.scene.argument.server.config.path.expose.bucket, this.keep_limit);
 
     this.format = {
-      archive_name: param.archive_name_format || "%name%",
-      archive_entry_name: param.entry_name_format || "%group%_%subgroup%"
+      group_name: param.group_name_format || "%name%",
+      entry_name: param.entry_name_format || "%group%_%subgroup%"
     };
 
     console.log("replacer = ", this.replacer);
@@ -175,45 +175,45 @@ module.exports = class extends Story {
         console.log("  =>", ofile.group + " " + ofile.hier.join(","));
       }
 
-      let archive_name =
-        this.format.archive_name
+      let lname =
+        this.format.group_name
           .replace("%name%", o.name)
           .replace("%count%", o.files.length)
           .replace("%number%", number)
         ;
 
-      if(param.archive_each_content){
+      if(param.toggle_archive_each_content){
         await this.pack('zip', { zlib: { level: 9 } },
-          this.path.result + path.sep + archive_name + '.zip',
+          this.path.result + path.sep + lname + '.zip',
           o.files.map((ov, i) => {
-            let archive_entry_name =
-              this.format.archive_entry_name
+            let entry_name =
+              this.format.entry_name
               .replace("%name%", o.name)
               .replace("%group%", ov.group)
               .replace("%subgroup%", ov.hier.join("-"))
               .replace("%number%", number)
               .replace("%index%", i)
             ;
-            archive_entry_name = archive_entry_name.replace(/_$/, "");
-            return [ov.path, archive_entry_name]
+            entry_name = entry_name.replace(/_$/, "");
+            return [ov.path, entry_name]
           })
         );
       }else{
-        var p = this.path.result + path.sep + archive_name;
+        var p = this.path.result + path.sep + lname;
         var i = 0;
         await fsx.mkdirp(p);
         for(var f of o.files){
-          let archive_entry_name =
-            this.format.archive_entry_name
+          let entry_name =
+            this.format.entry_name
             .replace("%name%", o.name)
             .replace("%group%", f.group)
             .replace("%subgroup%", f.hier.join("-"))
             .replace("%number%", number)
             .replace("%index%", i)
           ;
-          archive_entry_name = archive_entry_name.replace(/_$/, "");
+          entry_name = entry_name.replace(/_$/, "");
           var ex = path.extname(f.path);
-          await fsx.copy(f.path, p + path.sep + archive_entry_name + ex);
+          await fsx.copy(f.path, p + path.sep + entry_name + ex);
           i++;
         }
       }
