@@ -9,6 +9,12 @@ module.exports = {
      */
     port: 9000,
 
+    auth: {
+      basic: [
+        // ['USER', 'PASSWORD']
+      ]
+    },
+
     /* string with an adjective `/` will be treated as the absolute-path.
      * /abs/to/your/dir
      *
