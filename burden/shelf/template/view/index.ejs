@@ -39,8 +39,7 @@
           <tr>
             <td>
               <div v-if="decomped">
-                Data
-                <div v-for="s of decomped.structure.content">
+                <div v-for="s of decomped.structure.content.slice(0, 5)">
                   <div>
                     <i
                       class="fa"
@@ -52,6 +51,9 @@
                       s.content.slice(0, 5).map((a) => { return a.name }).join(", ")
                     }}</div>
                   </div>
+                </div>
+                <div v-if="decomped.structure.content.length > 5">
+                  ...
                 </div>
               </div>
               <div v-else>
@@ -72,11 +74,14 @@
             <td><i class="fas fa-arrow-alt-circle-right" style="font-size: 2em; margin: 1em;"></i></td>
             <td>
               <div v-if="est">
-                <div v-for="e of est">
+                <div v-for="e of est.slice(0, 5)">
                   <div><i class="fa fa-folder-open"></i> {{ e.format }}/</div>
                   <div class="ml-4">{{
                     e.files.slice(0, 5).map((a) => { return a.format + a.ext }).join(", ")
                   }}</div>
+                </div>
+                <div v-if="est.length > 5">
+                  ...
                 </div>
               </div>
               <div v-else>
