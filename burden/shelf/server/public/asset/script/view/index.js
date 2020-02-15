@@ -45,7 +45,7 @@
           if(r.download_path){
             window.open(
               window.location.protocol + "//"
-              + window.location.host + "/" + r.data.download_path);
+              + window.location.host + "/" + r.download_path);
           }
         }catch(e){
           Swal.fire({
