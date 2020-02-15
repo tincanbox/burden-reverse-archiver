@@ -7,12 +7,18 @@
       <div class="form-group">
         <button
           id="btn-sample"
-          class="btn btn-primary action-submit"
+          class="btn btn-primary"
           v-on:click="upload"
           ><i class="fas fa-file-upload"></i>&nbsp;Upload</button>
         <button
           id="btn-sample"
-          class="btn btn-primary action-submit"
+          class="btn btn-primary"
+          v-if="decomped"
+          v-on:click="fetch_dest_info"
+          ><i class="fas fa-cloud-download-alt"></i>&nbsp;Update</button>
+        <button
+          id="btn-sample"
+          class="btn btn-primary"
           v-if="decomped"
           v-on:click="download"
           ><i class="fas fa-cloud-download-alt"></i>&nbsp;Download</button>
@@ -25,9 +31,9 @@
         </small></p>
         <table class="table" style="font-size: .75em;">
           <thead>
-            <th>Before</th>
-            <th></th>
-            <th>After</th>
+            <th width="45%">Before</th>
+            <th width="10%"></th>
+            <th width="45%">After</th>
           </thead>
           <tbody>
           <tr>
@@ -42,7 +48,9 @@
                     {{ s.name }}
                   </div>
                   <div v-if="s.content.length">
-                    <div class="ml-4">{{ s.content.map((a) => { return a.name }).join(", ") }}</div>
+                    <div class="ml-4">{{
+                      s.content.slice(0, 5).map((a) => { return a.name }).join(", ")
+                    }}</div>
                   </div>
                 </div>
               </div>
@@ -63,17 +71,27 @@
             </td>
             <td><i class="fas fa-arrow-alt-circle-right" style="font-size: 2em; margin: 1em;"></i></td>
             <td>
-              <div>
-                <div><i class="fa fa-folder-open"></i> Yamada/</div>
-                <div class="ml-4">グループ１.pdf, グループ１.jpeg, グループ３.pdf</div>
+              <div v-if="est">
+                <div v-for="e of est">
+                  <div><i class="fa fa-folder-open"></i> {{ e.format }}/</div>
+                  <div class="ml-4">{{
+                    e.files.slice(0, 5).map((a) => { return a.format + a.ext }).join(", ")
+                  }}</div>
+                </div>
               </div>
-              <div>
-                <div><i class="fa fa-folder-open"></i> Suzuki</div>
-                <div class="ml-4">グループ１.pdf, グループ２.pdf</div>
-              </div>
-              <div>
-                <div><i class="fa fa-folder-open"></i> 渡邊</div>
-                <div class="ml-4">グループ２.pdf</div>
+              <div v-else>
+                <div>
+                  <div><i class="fa fa-folder-open"></i> Yamada/</div>
+                  <div class="ml-4">グループ１.pdf, グループ１.jpeg, グループ３.pdf</div>
+                </div>
+                <div>
+                  <div><i class="fa fa-folder-open"></i> Suzuki</div>
+                  <div class="ml-4">グループ１.pdf, グループ２.pdf</div>
+                </div>
+                <div>
+                  <div><i class="fa fa-folder-open"></i> 渡邊</div>
+                  <div class="ml-4">グループ２.pdf</div>
+                </div>
               </div>
             <td>
           </tr>
@@ -81,9 +99,10 @@
         </table>
       </div>
 
-      <form-upload
+      <form-main
         v-bind:stat="form"
-        ></form-upload>
+        @update="fetch_dest_info"
+        ></form-main>
 
     </div>
 
@@ -92,6 +111,6 @@
 
 </div>
 
-<%- include("component/form-upload") %>
+<%- include("component/form-main") %>
 
 <script src="/asset/script/view/index.js"></script>

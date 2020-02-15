@@ -5,16 +5,27 @@
     data(){
       return {
         form: this,
-        sample: "hoge",
         replacer: [],
-        decomped: null
+        decomped: null,
+        est: null
       }
     },
     methods: {
+      async fetch_dest_info(){
+        let p = retrieve_form_data();
+        console.log("p", p);
+        let r = await APP.request_gently('post', '/run/generate_archive', Object.assign({
+          token: ACCESS_TOKEN,
+          mode: 'estimate_result'
+        }, p));
+        this.est = r.est;
+      },
       async upload(){
         try{
           let r = await request_unpack();
           this.decomped = r;
+          console.log("r", r);
+          await this.fetch_dest_info();
           Swal.fire({
             icon: 'success',
             title: 'Success',
@@ -52,71 +63,43 @@
       throw new Error("ファイルを選択してください。");
     }
 
-    let f = new FormData();
-    f.append('archive', uploading);
-    f.append('mode', 'unpack');
-    f.append('token', ACCESS_TOKEN);
+    let p = retrieve_form_data();
 
-    return new Promise((res, rej) => {
-      $.ajax({
-        type: "post",
-        url: "/run/generate_archive",
-        data: f,
-        processData: false,
-        contentType: false,
-        complete: (r) => {
-          var result = r.responseJSON || false;
-          if(!result || result.error){
-            rej(new Error(result.error.detail));
-          }else{
-            res(result.data);
-          }
-        },
-        error: (r) => {
-          rej(r);
-        }
-      })
-    });
+    return APP.request_gently('post', '/run/generate_archive', Object.assign({
+      token: ACCESS_TOKEN,
+      mode: 'unpack',
+      archive: uploading
+    }, p));
   }
 
   function retrieve_packed_zip(){
-    let rp = {
+    let p = retrieve_form_data();
+    return APP.request_gently('post', '/run/generate_archive', Object.assign({
       token: ACCESS_TOKEN,
       mode: 'pack',
-      group_name_format: $('[name="group_name_format"]').val(),
-      entry_name_format: $('[name="entry_name_format"]').val(),
-      toggle_archive_each_content: $('[name="toggle_archive_each_content"]').attr("checked"),
-      replacer: (() => {
-        let ret = [];
-        let from = $('[name^=replacer-from]');
-        let to = $('[name^=replacer-to]');
-        from.each((i) => {
-          ret.push({
-            from: from.eq(i).val(),
-            to: to.eq(i).val()
-          });
+    }, p));
+  }
+
+  function retrieve_form_data(){
+    let p = {};
+    p.group_name_format = $('[name="group_name_format"]').val() || "";
+    p.entry_name_format = $('[name="entry_name_format"]').val() || "";
+    p.toggle_archive_each_content
+      = $('[name="toggle_archive_each_content"]').attr("checked") || "";
+    p.replacer = ((() => {
+      let ret = [];
+      let from = $('[name^=replacer-from]');
+      let to = $('[name^=replacer-to]');
+      from.each((i) => {
+        ret.push({
+          from: from.eq(i).val(),
+          to: to.eq(i).val()
         });
-        return ret;
-      })()
-    };
-    return new Promise((res, rej) => {
-      $.ajax({
-        type: "post",
-        url: "/run/generate_archive",
-        data: rp,
-        complete: (r) => {
-          var result = r.responseJSON || false;
-          if(!result || result.error){
-            rej(new Error(result.error.detail));
-          }else{
-            res(result);
-          }
-        },
-        error: (r) => {
-          rej(r);
-        }
       });
-    });
+      return ret;
+    })());
+
+    return p;
   }
 
 })();

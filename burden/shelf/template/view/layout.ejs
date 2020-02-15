@@ -17,8 +17,10 @@
 <link href="/asset/vendor/fontawesome/css/all.css" rel="stylesheet"> <!--load all styles -->
 <!-- bootstrap -->
 <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 <!-- FMJS -->
-<script src="https://gitcdn.link/repo/tincanbox/fmjs/master/src/fm.js"></script>
+<script src="/asset/vendor/fmjs/fm.js"></script>
 <!-- VUE -->
 <script src="/asset/vendor/vue/vue.js"></script>
 <!-- Swal -->
@@ -30,14 +32,123 @@
 }
 </style>
 <script>
+const APP = {};
 const ACCESS_TOKEN = '<%= token %>';
+(() => {
+
+  // Simple APP handler.
+
+  var __queue_storage = [];
+
+  APP.queue = function(clb){
+    __queue_storage.push(clb);
+  }
+
+  APP.flush = function(){
+    for(var q of __queue_storage) q.call();
+  }
+
+  APP.request = function(type, url, data){
+    let f = new FormData();
+    let d = {v:{},o:{},a:{}};
+    var k = "";
+    for(k in data){
+      var v = data[k];
+      var dk = "v";
+      if(v instanceof Array){
+        dk = "a";
+      }else{
+        if(typeof v == 'object'){
+          if(v.constructor == Object){
+          }else{
+            dk = "o";
+          }
+        }
+      }
+      d[dk][k] = data[k];
+    }
+    let s = [];
+    s = s.concat(FM.ob.serialize(d.v));
+    s = s.concat(FM.ob.serialize(d.a));
+    for(k of s) f.append(k[0], k[1]);
+    for(k in d.o) f.append(k, d.o[k]);
+    return (new Promise((res, rej) => {
+      $.ajax({
+        type: "post", url: url,
+        data: f,
+        processData: false, contentType: false,
+        complete: (r) => {
+          console.info("RESPONSE:", r);
+          var result = r.responseJSON || false;
+          if(!result || result.error)
+            rej(new Error(result.error.detail || result.error));
+          else
+            res(result.data);
+        },
+        error: rej
+      });
+    }));
+  }
+
+  APP.request_gently = function(type, url, p){
+    let tm = APP.notify({
+      title: ''
+        + '<div class="d-flex align-items-center">'
+        + '<div class="spinner-border ml-auto text-primary"'
+          + ' role="status" aria-hidden="true" style=""></div>'
+        + '&nbsp;&nbsp;<span style="font-size: 1rem;">Syncing...</span>'
+        + '</div>' });
+    return APP.request(type, url, p)
+      .then((r) => {
+        tm.close();
+        return r; })
+      .catch((e) => {
+        tm.close();
+        throw e; });
+  }
+
+  APP.notify = function(p){
+    return Swal.fire(Object.assign({
+      title: (typeof p === 'string') ? p : "",
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      showCloseButton: false,
+      showCancelButton: false,
+    }, p));
+  }
+
+  APP.download = function(filename, text) {
+    var element = document.createElement('a');
+    element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+    element.setAttribute('download', filename);
+    element.style.display = 'none';
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }
+
+  APP.show_error = function(e){
+    return Swal.fire({
+      icon: 'error', title: 'OH SNAP!',
+      text: "Error: " + e.message });
+  }
+
+})();
 </script>
 
 </head>
 <body style="padding-top: 4.5rem;">
-  <nav class="navbar navbar-dark fixed-top bg-dark">
-    <a class="navbar-brand" href="#">ZIP Reverse</a>
-  </nav>
-  <div id="container" class="container"><%- yield %></div>
+<nav class="navbar navbar-dark fixed-top bg-dark">
+  <a class="navbar-brand" href="#">Sample</a>
+</nav>
+<div id="container" class="container"><%- yield %></div>
+<script>
+// Flushing queues.
+( document.readyState === "complete" ||
+  (document.readyState !== "loading" && !document.documentElement.doScroll)
+) ? APP.flush()
+  : document.addEventListener("DOMContentLoaded", APP.flush) ;
+</script>
 </body>
 </html>

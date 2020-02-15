@@ -1,0 +1,18 @@
+<template id="template--form-upload-file">
+<div class="input-group">
+  <div class="input-group-prepend">
+    <span class="input-group-text" id="uploading-addon">ZIPファイル選択</span>
+  </div>
+  <div class="custom-file">
+    <input
+      id="upload"
+      type="file"
+      class="custom-file-input"
+      name="upload"
+      aria-describedby="uploading-addon"
+      placeholder=""
+      v-on:change="update_label">
+    <label class="custom-file-label" for="upload"></label>
+  </div>
+</div>
+</template>

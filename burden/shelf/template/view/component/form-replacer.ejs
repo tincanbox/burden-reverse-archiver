@@ -1,0 +1,35 @@
+<template id="template--form-upload-replacer">
+<section>
+  <div
+    class="replacer row form-group"
+    v-for="r of stat.replacer"
+    >
+    <div class="col-md-6">
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <span class="input-group-text">FROM</span>
+        </div>
+        <input class="form-control"
+          name="replacer-from[]"
+          v-model="r.from"
+          @input.lazy="watch_update">
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="input-group">
+        <div class="input-group-prepend">
+          <span class="input-group-text">TO</span>
+        </div>
+        <input
+          class="form-control"
+          name="replacer-to[]"
+          v-model="r.to"
+          @input.lazy="watch_update"
+          >
+      </div>
+    </div>
+  </div>
+</section>
+</template>
+
+
