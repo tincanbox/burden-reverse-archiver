@@ -42,8 +42,10 @@
       async download(){
         try{
           let r = await retrieve_packed_zip();
-          if(r.data.download_path){
-            window.open(window.location.protocol + "//" + window.location.host + "/" + r.data.download_path);
+          if(r.download_path){
+            window.open(
+              window.location.protocol + "//"
+              + window.location.host + "/" + r.data.download_path);
           }
         }catch(e){
           Swal.fire({
