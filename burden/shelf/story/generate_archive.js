@@ -417,11 +417,11 @@ module.exports = class extends Story {
       }
 
       // renaming filename
-      let id = this.replace_entry('file', sub_entry_name);
-      let idsp = id.split(".");
-
-      idsp.pop(); // Trims shitty ext.
-      id = idsp.join(".");
+      let id;
+      let idsp = sub_entry_name.split(".");
+      let pp = idsp.pop(); // Trims shitty ext.
+      id = (idsp.length > 0) ? idsp.join(".") : pp;
+      id = this.replace_entry('file', id);
 
       var mt = null;
       for(var dik of dict){
