@@ -1,0 +1,27 @@
+<template id="template--component-preview-content">
+<section>
+  <p>
+  全 {{ sending_count }} 件
+  </p>
+  <table class="table" style="min-width: 640px;">
+    <thead>
+      <tr>
+        <th>target</th>
+        <th>original</th>
+        <th>content</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="row of est">
+        <td>{{row.format || "ERROR"}}</td>
+        <td>{{row.orig || "ERROR"}}</td>
+        <td>
+          <div v-for="c of row.files">
+            <small><i class="fas fa-user-lock"></i>&nbsp;{{ c.format + c.ext }}</small></div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+</template>
+<script src="/asset/script/component/preview.js"></script>

@@ -3,7 +3,8 @@
 
   <div class="col-12">
 
-    <div id="form">
+    <div id="form" class="mb-5">
+
       <div class="form-group">
         <button
           id="btn-sample"
@@ -14,14 +15,14 @@
           id="btn-sample"
           class="btn btn-primary"
           v-if="decomped"
-          v-on:click="fetch_dest_info"
-          ><i class="fas fa-cloud-download-alt"></i>&nbsp;Update</button>
-        <button
-          id="btn-sample"
-          class="btn btn-primary"
-          v-if="decomped"
           v-on:click="download"
           ><i class="fas fa-cloud-download-alt"></i>&nbsp;Download</button>
+        <button
+          id="btn-sample"
+          class="btn btn-info"
+          v-if="est"
+          v-on:click="preview"
+          ><i class="fas fa-eye"></i>&nbsp;Preview</button>
       </div>
 
       <div class="form-group">
@@ -117,5 +118,6 @@
 </div>
 
 <%- include("component/form-main") %>
+<%- include("component/preview") %>
 
 <script src="/asset/script/view/index.js"></script>

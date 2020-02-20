@@ -1,3 +1,14 @@
+<style>
+.swal-auto {
+  width: auto !important;
+  min-width: 960px;
+  text-align: left;
+}
+</style>
+
+<script src="/asset/vendor/tabulator/dist/js/tabulator.js"></script>
+<link rel="stylesheet" href="/asset/vendor/tabulator/dist/css/tabulator.css">
+
 <template id="template--form-main">
   <section>
 
@@ -14,6 +25,11 @@
     -->
 
     <div v-if="stat.decomped" v-hidden>
+
+      <br>
+      <hr>
+
+      <h4>Settings</h4>
 
       <div class="form-group">
         <div class="form-check">
@@ -35,7 +51,8 @@
 
       <div class="form-group">
 
-        <label>保存時エントリー名フォーマット</label>
+        <br>
+        <h5>保存時エントリー名フォーマット</h5>
         <p><small>
         保存する際の名称を設定します。
         Group01/Yamada.pdf を Yamada様/Group01_資料.pdf のように、
@@ -62,7 +79,8 @@
             >
         </div>
 
-        <label>置換設定（再圧縮後のファイル・ディレクトリ名に含まれる文字を置換します。）</label>
+        <br>
+        <h5>置換設定（再圧縮後のファイル・ディレクトリ名に含まれる文字を置換します。）</h5>
         <p><small>
         Group01/Yamada.pdf, Group02/MrYamada.pdf のように、
         ファイル名が統一されていない場合に特定の文字列を置換して結果が同じになる場合は同一のエントリーとして扱います。
@@ -73,7 +91,7 @@
         <div class="form-group">
           <button
              class="btn btn-info action-add-replacer-row"
-             v-on:click="add_row">Add</button>
+             v-on:click="add_row">１件追加する</button>
         </div>
 
         <div class="form-group">

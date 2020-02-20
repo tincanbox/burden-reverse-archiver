@@ -433,6 +433,7 @@ module.exports = class extends Story {
       if(!mt){
         mt = {
           name: id,
+          orig: sub_entry_name,
           format: "",
           hier: h_r,
           files: []
@@ -445,6 +446,7 @@ module.exports = class extends Story {
         format: "",
         ext: "",
         hier: h_r,
+        orig: sub_entry_name,
         path: sub_entry_path
       };
       ent.ext = path.extname(ent.path);

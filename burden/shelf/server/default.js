@@ -248,7 +248,6 @@ module.exports = class {
         })
         .on('end', function () {
           let o = FM.ob.unserialize(fds);
-          console.log("Fields", o);
           req.body = Object.assign(req.body || {}, o);
         });
       // lets go
