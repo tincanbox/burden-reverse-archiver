@@ -90,7 +90,7 @@ module.exports = class extends Story {
             let dp
               = this.scene.argument.server.config.path.expose.bucket
                 + path.sep + fn;
-            await fsp.rename( r.download_path, dp);
+            await fsx.copy( r.download_path, dp);
             return {
               download_path: "bucket?file=" + fn
             };
