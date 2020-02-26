@@ -172,6 +172,9 @@ module.exports = class extends Story {
     // Unzip uploaded file.
     await fsx.remove(this.path.content);
     await fsx.mkdirp(this.path.content);
+    await fsx.remove(this.path.result);
+    await fsx.mkdirp(this.path.result);
+
     if(!param.file.archive){
       throw new Error("Empty");
     }
