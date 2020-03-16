@@ -96,6 +96,7 @@
     let p = {};
     p.group_name_format = $('[name="group_name_format"]').val() || "";
     p.entry_name_format = $('[name="entry_name_format"]').val() || "";
+    p.entry_name_hier_glue_char = $('[name="entry_name_hier_glue_char"]').val() || "";
     p.toggle_archive_each_content
       = $('[name="toggle_archive_each_content"]').attr("checked") || "";
     p.replacer = ((() => {
