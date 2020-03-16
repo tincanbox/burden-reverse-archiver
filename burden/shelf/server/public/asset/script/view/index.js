@@ -14,11 +14,24 @@
       async fetch_dest_info(){
         let p = retrieve_form_data();
         console.log("p", p);
-        let r = await APP.request_gently('post', '/run/generate_archive', Object.assign({
-          token: ACCESS_TOKEN,
-          mode: 'estimate_result'
-        }, p));
-        this.est = r.est;
+        let r;
+        try{
+          r = await APP.request_gently('post', '/run/generate_archive', Object.assign({
+            token: ACCESS_TOKEN,
+            mode: 'estimate_result'
+          }, p));
+          this.est = r.est;
+        }catch(e){
+          if(e.message.match("invalid content dir name")){
+            Swal.fire({
+              icon: 'error', title: '設定エラー',
+              text: "置換後に空となってしまうディレクトリがあります。置換設定を確認してください。 => " + e.message });
+          }else{
+            Swal.fire({
+              icon: 'error', title: '設定エラー',
+              text: e.message });
+          }
+        }
       },
       async preview(){
         try{

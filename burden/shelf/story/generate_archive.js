@@ -440,7 +440,7 @@ module.exports = class extends Story {
     let dir = this.replace_entry('directory', entry_name);
 
     if(!dir){
-      throw new Error("invalid content dir name");
+      throw new Error("invalid content dir name: " + entry_name);
     }
 
     hier.push(dir);
