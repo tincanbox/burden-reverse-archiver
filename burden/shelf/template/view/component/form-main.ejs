@@ -44,7 +44,8 @@
           <p class="text-muted"><small>
             デフォルトでは各エントリーはディレクトリとして分けられ、そのまま保存されますが、
             その分別後のディレクトリをZIP形式で圧縮します。
-            ※ 
+            <br>
+            ※分別された状態をそのままメールで添付したい、などの場合に使用します。
           </small></p>
         </div>
       </div>
@@ -61,22 +62,53 @@
 
         <div class="form-group">
           <label>グループ名フォーマット</label>
+          <p class="text-muted"><small>
+          分類の基となるフォルダの保存名のフォーマットです。『user_〇〇』などのように固定の文字を付与したい場合などに設定してください。
+          </small></p>
           <input
             class="form-control"
             name="group_name_format"
             value="%name%"
             @input.lazy="watch_update"
             >
+          <div><small>
+            使用可能項目:
+            <code>name = グループ名, number = N番目, count = グループ総数</code>
+          </small></div>
         </div>
 
         <div class="form-group">
-          <label>各エントリー</label>
-          <input
-            class="form-control"
-            name="entry_name_format"
-            value="%hier%"
-            @input.lazy="watch_update"
-            >
+          <label>各エントリー名フォーマット</label>
+          <p class="text-muted"><small>
+          それぞれのファイルの保存名のフォーマットです。『資料_〇〇』のように固定の文字を付与したい場合などに設定してください。多階層に渡るフォルダ構成の場合は、"__" でフォルダ名が接続された文字がデフォルトのファイル名となります。※置換後のファイル名が重複すると、最後に保存されたファイルで上書きされてしまいます。あまり簡易なファイル名にならないように気をつけてください。
+          </small></p>
+          <div class="row">
+            <div class="col-md-8">
+              <input
+                class="form-control"
+                name="entry_name_format"
+                value="%hier%"
+                @input.lazy="watch_update"
+                >
+            </div>
+            <div class="col-md-4">
+              <div class="input-group">
+                <div class="input-group-prepend">
+                  <label class="input-group-text">接続文字</label>
+                </div>
+                <input
+                  class="form-control"
+                  name="entry_name_hier_glue_char"
+                  value="__"
+                  @input.lazy="watch_update"
+                  >
+              </div>
+            </div>
+          </div>
+          <div><small>
+            使用可能項目:
+            <code>group = 上記グループ名, hier = 全フォルダ階層, directory = 直上のフォルダ名, number = グループN番目, index = グループ内ファイルN番目</code>
+          </small></div>
         </div>
 
         <br>

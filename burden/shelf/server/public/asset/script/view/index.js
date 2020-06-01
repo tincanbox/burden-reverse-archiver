@@ -13,12 +13,34 @@
     methods: {
       async fetch_dest_info(){
         let p = retrieve_form_data();
+<<<<<<< HEAD
         console.log("Form Param = ", p);
         let r = await APP.request_gently('post', '/run/generate_archive', Object.assign({
           token: ACCESS_TOKEN,
           mode: 'estimate_result'
         }, p));
         this.est = r.est;
+=======
+        console.log("p", p);
+        let r;
+        try{
+          r = await APP.request_gently('post', '/run/generate_archive', Object.assign({
+            token: ACCESS_TOKEN,
+            mode: 'estimate_result'
+          }, p));
+          this.est = r.est;
+        }catch(e){
+          if(e.message.match("invalid content dir name")){
+            Swal.fire({
+              icon: 'error', title: '設定エラー',
+              text: "置換後に空となってしまうディレクトリがあります。置換設定を確認してください。 => " + e.message });
+          }else{
+            Swal.fire({
+              icon: 'error', title: '設定エラー',
+              text: e.message });
+          }
+        }
+>>>>>>> 8a2f866cac5e9daad77dff7d74faa68c7b80dbee
       },
       async preview(){
         try{
@@ -94,7 +116,11 @@
     let p = {};
     p.group_name_format = $('[name="group_name_format"]').val() || "";
     p.entry_name_format = $('[name="entry_name_format"]').val() || "";
+<<<<<<< HEAD
     p.file_encoding = $('[name="file_encoding"]').val() || "";
+=======
+    p.entry_name_hier_glue_char = $('[name="entry_name_hier_glue_char"]').val() || "";
+>>>>>>> 8a2f866cac5e9daad77dff7d74faa68c7b80dbee
     p.toggle_archive_each_content
       = $('[name="toggle_archive_each_content"]').attr("checked") || "";
     p.replacer = ((() => {

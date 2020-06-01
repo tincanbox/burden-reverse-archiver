@@ -28,6 +28,9 @@ module.exports = class extends Story {
     ]);
 
     this.replacer = {
+      nogroup: {
+        label: 'attachment'
+      },
       file: [
       ],
       directory: [
@@ -35,6 +38,7 @@ module.exports = class extends Story {
     };
 
     this.keep_limit = 40;
+    this.entry_name_hier_glue_char = "__";
 
     this.path = {};
     this.path.storage = this.core.config.path.app + path.sep + 'storage';
@@ -51,6 +55,8 @@ module.exports = class extends Story {
     if(!param.mode){
       this.abort("invalid mode");
     }
+
+    console.log(param.mode, "-----------------------------------");
 
     if(!param.token){
       this.abort("invalid request");
@@ -80,6 +86,8 @@ module.exports = class extends Story {
     };
 
     console.log("mode = ", param.mode);
+    this.entry_name_hier_glue_char = param.entry_name_hier_glue_char || this.entry_name_hier_glue_char;
+
     console.log("replacer = ", this.replacer);
     console.log("format = ", this.format);
 
@@ -299,6 +307,7 @@ module.exports = class extends Story {
 
   /*
    */
+<<<<<<< HEAD
   async unpack(file, dest_dir, option){
     let p = await this.unpack_all_entry(this.unpack_meta(file, dest_dir, option), dest_dir, option);
     return p;
@@ -376,9 +385,24 @@ module.exports = class extends Story {
       }
     }
 
+<<<<<<< HEAD
     let nogroup_dd = path.dirname(this.path.content) + path.sep + '__nogroup';
     await fsx.remove(nogroup_dd);
+=======
+    let nogroup_dd = path.dirname(this.path.content) + path.sep + this.replacer.nogroup.label;
+
+    await fsx.remove(nogroup_dd);
+    await fsx.mkdirp(nogroup_dd);
+
+>>>>>>> 8a2f866cac5e9daad77dff7d74faa68c7b80dbee
     this.monolog("step", "before dirs");
+    /* Handling the files which directly-allocated within a directory.
+     *
+     * sample.zip/Mr_A.txt
+     * => Mr_A/Attachment.txt
+     *           ^ this is "nogroup.label"
+     *
+     */
     for(let entry_name of entry_list){
       let entry_path = base + path.sep + entry_name;
       let st = await fsp.stat(entry_path);
@@ -387,12 +411,14 @@ module.exports = class extends Story {
         result  = await this.generate_converted_structure(result, entry_path);
       }else{
         // File
-        await fsx.mkdirp(nogroup_dd);
+        // pre-builds directory for nogrouped files.
         await fsp.copyFile(entry_path, nogroup_dd + path.sep + entry_name);
         continue;
       }
     }
 
+    /* pushes nogrouped files-info to result.
+     */
     try{
       let nogroup_files = await fsp.readdir(nogroup_dd);
       if(nogroup_files.length){
@@ -411,13 +437,15 @@ module.exports = class extends Story {
     let entry_comp = entry_path.split(path.sep);
     let entry_name = entry_comp.pop();
 
-    let gid = this.replace_entry('directory', entry_name);
+    /* finding priory-grouping-key.
+     */
+    let dir = this.replace_entry('directory', entry_name);
 
-    if(!gid){
-      throw new Error("invalid content dir name");
+    if(!dir){
+      throw new Error("invalid content dir name: " + entry_name);
     }
 
-    hier.push(gid);
+    hier.push(dir);
 
     let sub_entry_list = await fsp.readdir(entry_path);
     for(let sub_entry_name of sub_entry_list){
@@ -438,6 +466,8 @@ module.exports = class extends Story {
       id = (idsp.length > 0) ? idsp.join(".") : pp;
       id = this.replace_entry('file', id);
 
+      /*
+       */
       var mt = null;
       for(var dik of dict){
         if(dik.name == id){
@@ -445,6 +475,8 @@ module.exports = class extends Story {
           break;
         }
       }
+
+      /* pushing empty-entry-container for later use */
       if(!mt){
         mt = {
           name: id,
@@ -457,18 +489,20 @@ module.exports = class extends Story {
       }
 
       var ent = {
-        group: gid,
+        directory: dir,
         format: "",
         ext: "",
         hier: h_r,
         orig: sub_entry_name,
         path: sub_entry_path
       };
+
       ent.ext = path.extname(ent.path);
       mt.files.push(ent);
     }
 
     for( var d_i = 0; d_i < dict.length; d_i++ ){
+      // Group Format
       var d = dict[d_i];
       d.format
         = this.format.group_name
@@ -477,15 +511,17 @@ module.exports = class extends Story {
         .replace("%number%", d_i + 1)
       ;
 
+      // Entry Format
       for(var i = 0; i < d.files.length; i ++){
         var ent = d.files[i];
         ent.format
           = this.format.entry_name
-          .replace("%name%", d.name)
-          .replace("%group%", ent.group)
-          .replace("%hier%", ent.hier.join("--"))
+          .replace("%hier%", ent.hier.join(this.entry_name_hier_glue_char))
+          .replace("%group%", d.name)
+          .replace("%group_format%", d.format)
+          .replace("%directory%", ent.directory)
           .replace("%number%", d_i + 1)
-          .replace("%index%", i)
+          .replace("%index%", i + 1)
         ;
         ent.format = ent.format.replace(/_$/, "");
       }
