@@ -1,8 +1,13 @@
 <template id="template--form-upload-file">
 <div class="input-group">
-  <div class="input-group-prepend">
-    <span class="input-group-text" id="uploading-addon">ZIPファイル選択</span>
-  </div>
+
+  <select class="custom-select col-2" id="inputGroupSelect01" name="file_encoding">
+    <option selected>文字コード</option>
+    <option value="cp932" selected>Windows (CP932)</option>
+    <option value="utf8">UTF-8</option>
+    <option value="auto">自動判別（特殊文字不可）</option>
+  </select>
+
   <div class="custom-file">
     <input
       id="upload"
@@ -12,7 +17,8 @@
       aria-describedby="uploading-addon"
       placeholder=""
       v-on:change="update_label">
-    <label class="custom-file-label" for="upload"></label>
+    <label class="custom-file-label" for="upload">ZIPファイル選択</label>
   </div>
+
 </div>
 </template>

@@ -6,9 +6,16 @@ const archiver = require('archiver');
 const yauzl = require('yauzl');
 const decompress = require('decompress');
 const uuid = require('uuid');
+
+// handling sjis characters in file name...
 const iconv = require('iconv-lite');
-const unzipper = require('unzipper');
 const EncodingJP = require('encoding-japanese');
+const jschardet = require("jschardet");
+// handling archives...
+const admzip = require('adm-zip');
+const jszip = require('jszip');
+const n7z = require('node-7z');
+
 
 const Story = disc('class/Story');
 
@@ -31,6 +38,8 @@ module.exports = class extends Story {
 
     this.path = {};
     this.path.storage = this.core.config.path.app + path.sep + 'storage';
+
+    console.log(this.scene.param);
   }
 
   /*
@@ -70,6 +79,7 @@ module.exports = class extends Story {
       entry_name: param.entry_name_format || "%hier%"
     };
 
+    console.log("mode = ", param.mode);
     console.log("replacer = ", this.replacer);
     console.log("format = ", this.format);
 
@@ -130,9 +140,6 @@ module.exports = class extends Story {
 
     for(let o of result){
 
-      console.log("----------");
-      console.log(o.name);
-
       if(param.toggle_archive_each_content){
         await this.pack('zip', { zlib: { level: 9 } },
           this.path.result + path.sep + o.format + '.zip',
@@ -186,10 +193,12 @@ module.exports = class extends Story {
     ].indexOf(param.file.archive.type) < 0){
       throw new Error("Only ZIP is supported. => " + param.file.archive.type);
     }
-    let r = await this.unpack(param.file.archive, this.path.content);
+    let info = await this.unpack(param.file.archive, this.path.content, {
+      file_encoding: param.file_encoding
+    });
     return {
       token: param.token,
-      data: r
+      data: info.files
     };
   }
 
@@ -290,47 +299,50 @@ module.exports = class extends Story {
 
   /*
    */
-  async unpack(file, dest_dir){
-    let files = [];
-    let zip_file_path = file.path;
-    let trail = (new RegExp("(\\\\|/)$"));
-    let zip_fnsp = file.name.split(".");
-    let zip_fext = zip_fnsp.pop();
-    let zip_fbsn = zip_fnsp.join(".");
-    let zip_fbsn_reg = new RegExp("^" + zip_fbsn);
-    return new Promise((res, rej) => {
-      fs.createReadStream(zip_file_path)
-        .pipe(unzipper.Parse())
-        .on('entry', async (entry) => {
-          try{
-            let enc = EncodingJP.detect(entry.props.pathBuffer);
-            let f = iconv.decode(entry.props.pathBuffer, enc);
-            if(trail.test(f)){
-              await fsp.mkdir(dest_dir + path.sep + f);
-              entry.autodrain();
-            }else{
-              let fnsp = f.split(".");
-              let fext = fnsp.pop();
-              let fbsn = fnsp.join(".");
-              let p = dest_dir + path.sep + ((fbsn == zip_fbsn) ? f : f.replace(zip_fbsn_reg, ""));
-              await fsx.mkdirp(path.dirname(p));
-              entry.pipe(fs.createWriteStream(p));
-              files.push(p);
-            }
-          }catch(e){
-            entry.autodrain();
-          }
-        })
-        .promise()
-        .then((r) => {
-          res(files);
-        })
-        .catch((e) => {
-          console.error(e);
-          rej(e);
-        })
-      ;
-    })
+  async unpack(file, dest_dir, option){
+    let p = await this.unpack_all_entry(this.unpack_meta(file, dest_dir, option), dest_dir, option);
+    return p;
+  }
+
+  unpack_meta(file, dest_dir, option){
+    let info = {};
+    info.files = [];
+    info.zip_file_path = file.path;
+    info.zip_file_name = file.name;
+    info.zip_fnsp = info.zip_file_name.split(".");
+    info.zip_fext = info.zip_fnsp.pop();
+    info.zip_fbsn = info.zip_fnsp.join(".");
+    info.zip_fbsn_reg = new RegExp("^" + info.zip_fbsn);
+    info.trail = (new RegExp("(\\\\|/)$"));
+    return info;
+  }
+
+  async unpack_all_entry(info, dest_dir, option){
+    //var zip = new admzip(info.zip_file_path);
+    //var zipEntries = zip.getEntries(); 
+    //var newzip = new jszip();
+
+    await (new Promise((res, rej) => {
+      let savezip = n7z.extractFull(info.zip_file_path, dest_dir);
+      savezip.on('end', () => {
+        res(info);
+      });
+      savezip.on('error', (e) => {
+        rej(e);
+      });
+    }));
+
+    const walk = async function (dir) {
+      const ent_list = await fsp.readdir(dir, { withFileTypes: true });
+      const file_list = await Promise.all(ent_list.map((ent) => {
+        return ((p) => (ent.isDirectory() ? walk(p) : p))(dir + path.sep + ent.name);
+      }));
+      return Array.prototype.concat(...file_list);
+    }
+
+    info.files = await walk(dest_dir);
+
+    return info;
   }
 
   replace_entry(type, v){
@@ -365,11 +377,11 @@ module.exports = class extends Story {
     }
 
     let nogroup_dd = path.dirname(this.path.content) + path.sep + '__nogroup';
+    await fsx.remove(nogroup_dd);
     this.monolog("step", "before dirs");
     for(let entry_name of entry_list){
       let entry_path = base + path.sep + entry_name;
       let st = await fsp.stat(entry_path);
-
       if(st.isDirectory()){
         // Directory
         result  = await this.generate_converted_structure(result, entry_path);
@@ -505,7 +517,6 @@ module.exports = class extends Story {
     if(dd.length > lm){
       return Promise.all(dd.slice(lm || 5).map((a) => {
         return new Promise((res, rej) => {
-          console.log("Removing old files =>", a.path);
           fsx.remove(a.path).then(res).catch(rej);
         })
       })).catch((e) => {

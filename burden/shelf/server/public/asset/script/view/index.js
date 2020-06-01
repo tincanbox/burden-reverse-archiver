@@ -13,7 +13,7 @@
     methods: {
       async fetch_dest_info(){
         let p = retrieve_form_data();
-        console.log("p", p);
+        console.log("Form Param = ", p);
         let r = await APP.request_gently('post', '/run/generate_archive', Object.assign({
           token: ACCESS_TOKEN,
           mode: 'estimate_result'
@@ -23,9 +23,7 @@
       async preview(){
         try{
           var vm = this;
-          show_preview_table(vm).then((r) => {
-            console.log(r);
-          });
+          show_preview_table(vm);
         }catch(e){
           dialog_error(e);
         }
@@ -34,7 +32,7 @@
         try{
           let r = await request_unpack();
           this.decomped = r;
-          console.log("r", r);
+          console.log("request unpacked =", r);
           await this.fetch_dest_info();
           Swal.fire({
             icon: 'success',
@@ -96,6 +94,7 @@
     let p = {};
     p.group_name_format = $('[name="group_name_format"]').val() || "";
     p.entry_name_format = $('[name="entry_name_format"]').val() || "";
+    p.file_encoding = $('[name="file_encoding"]').val() || "";
     p.toggle_archive_each_content
       = $('[name="toggle_archive_each_content"]').attr("checked") || "";
     p.replacer = ((() => {

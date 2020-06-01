@@ -9,11 +9,14 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "adm-zip": "^0.4.14",
     "archiver": "^3.1.1",
     "colloquist": "tincanbox/colloquist#v2.0",
     "decompress": "^4.2.0",
     "encoding-japanese": "^1.0.30",
     "iconv-lite": "^0.5.1",
-    "unzipper": "^0.10.8"
+    "jschardet": "^2.1.1",
+    "jszip": "^3.4.0",
+    "node-7z": "^2.1.1"
   }
 }
