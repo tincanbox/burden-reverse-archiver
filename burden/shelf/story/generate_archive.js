@@ -142,7 +142,7 @@ module.exports = class extends Story {
       console.error(e);
     }
 
-    /*==================================================
+    /*----------------
     */
     var result = await this.fetch_dest_info(param);
 
@@ -307,7 +307,6 @@ module.exports = class extends Story {
 
   /*
    */
-<<<<<<< HEAD
   async unpack(file, dest_dir, option){
     let p = await this.unpack_all_entry(this.unpack_meta(file, dest_dir, option), dest_dir, option);
     return p;
@@ -385,16 +384,11 @@ module.exports = class extends Story {
       }
     }
 
-<<<<<<< HEAD
-    let nogroup_dd = path.dirname(this.path.content) + path.sep + '__nogroup';
-    await fsx.remove(nogroup_dd);
-=======
     let nogroup_dd = path.dirname(this.path.content) + path.sep + this.replacer.nogroup.label;
 
     await fsx.remove(nogroup_dd);
     await fsx.mkdirp(nogroup_dd);
 
->>>>>>> 8a2f866cac5e9daad77dff7d74faa68c7b80dbee
     this.monolog("step", "before dirs");
     /* Handling the files which directly-allocated within a directory.
      *
