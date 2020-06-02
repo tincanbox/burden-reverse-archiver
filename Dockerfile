@@ -16,7 +16,6 @@ RUN npm install
 #----------------------------------------
 # Your app dependencies.
 #----------------------------------------
-RUN apt-get install -y p7zip-full
 
 #----------------------------------------
 # Bootstraps

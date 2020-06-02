@@ -3,18 +3,13 @@ const fsp = fs.promises;
 const fsx = require('fs-extra');
 const path = require('path');
 const archiver = require('archiver');
-const yauzl = require('yauzl');
 const decompress = require('decompress');
-const uuid = require('uuid');
 
 // handling sjis characters in file name...
 const iconv = require('iconv-lite');
 const EncodingJP = require('encoding-japanese');
 const jschardet = require("jschardet");
-// handling archives...
-const admzip = require('adm-zip');
 const jszip = require('jszip');
-const n7z = require('node-7z');
 
 
 const Story = disc('class/Story');
@@ -345,9 +340,6 @@ module.exports = class extends Story {
   }
 
   async unpack_all_entry(info, dest_dir, option){
-    // var zip = new admzip(info.zip_file_path);
-    // var entry_list = zip.getEntries(); 
-
     let input_zip_stream = await fsp.readFile(info.zip_file_path);
     let input_zip_info = await jszip.loadAsync(input_zip_stream, {
       decodeFileName: (fn_buf) => {
