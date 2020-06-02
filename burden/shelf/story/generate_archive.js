@@ -331,7 +331,9 @@ module.exports = class extends Story {
     //var newzip = new jszip();
 
     await (new Promise((res, rej) => {
-      let savezip = n7z.extractFull(info.zip_file_path, dest_dir);
+      let savezip = n7z.extractFull(info.zip_file_path, dest_dir, {
+        charset: 'UTF-8'
+      });
       savezip.on('end', () => {
         res(info);
       });
