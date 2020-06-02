@@ -77,6 +77,8 @@ module.exports = class extends Story {
     this.path.content = this.path.working + path.sep + 'content';
     this.path.result = this.path.working + path.sep + "result";
 
+    try{ await fsx.mkdirp(this.path.working); } finally { console.log("dir check:", this.path.working); };
+
     await this.rotate_directory(this.path.storage, this.keep_limit);
     await this.rotate_directory(this.scene.argument.server.config.path.expose.bucket, this.keep_limit);
 
@@ -325,32 +327,55 @@ module.exports = class extends Story {
     return info;
   }
 
-  async unpack_all_entry(info, dest_dir, option){
-    //var zip = new admzip(info.zip_file_path);
-    //var zipEntries = zip.getEntries(); 
-    //var newzip = new jszip();
-
-    await (new Promise((res, rej) => {
-      let savezip = n7z.extractFull(info.zip_file_path, dest_dir, {
-        charset: 'UTF-8'
-      });
-      savezip.on('end', () => {
-        res(info);
-      });
-      savezip.on('error', (e) => {
-        rej(e);
-      });
-    }));
-
-    const walk = async function (dir) {
-      const ent_list = await fsp.readdir(dir, { withFileTypes: true });
-      const file_list = await Promise.all(ent_list.map((ent) => {
-        return ((p) => (ent.isDirectory() ? walk(p) : p))(dir + path.sep + ent.name);
-      }));
-      return Array.prototype.concat(...file_list);
+  detect_encoding(buf, def) {
+    let enc;
+    enc = EncodingJP.detect(buf);
+    if (!enc) {
+      let det = jschardet.detect(buf);
+      if (!det.encoding) {
+        enc = def;
+      }else{
+        enc = det.encoding;
+      }
     }
+    if(enc == "UNICODE"){
+      enc = def;
+    }
+    return enc;
+  }
 
-    info.files = await walk(dest_dir);
+  async unpack_all_entry(info, dest_dir, option){
+    // var zip = new admzip(info.zip_file_path);
+    // var entry_list = zip.getEntries(); 
+
+    let input_zip_stream = await fsp.readFile(info.zip_file_path);
+    let input_zip_info = await jszip.loadAsync(input_zip_stream, {
+      decodeFileName: (fn_buf) => {
+        let enc = "";
+        if(option.file_encoding == "auto"){
+          enc = this.detect_encoding(fn_buf, 'utf-8');
+        }else{
+          enc = option.file_encoding;
+        }
+        let res = iconv.decode(fn_buf, enc);
+        return res;
+      }
+    });
+
+    for(let k in input_zip_info.files){
+      let entry = input_zip_info.files[k];
+      console.log("---------------------------------------------");
+      console.log(entry.name)
+      console.log(entry)
+
+      info.files.push(entry.name);
+      let f_buf = await entry.async("uint8array");
+      let f_pth = dest_dir + path.sep + entry.name;
+      try{
+        await fsx.mkdirp(path.dirname(f_pth));
+        await fsp.writeFile(f_pth, f_buf);
+      }catch(e){ console.log("  -> ", e.message); }
+    }
 
     return info;
   }

@@ -1,0 +1,5 @@
+burden:
+  build: "./"
+  container_name: "colloquist.burden.reverse-archiver"
+  ports:
+   - "9000:9000"

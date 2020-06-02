@@ -1,0 +1,7 @@
+burden:
+  extends:
+    file: docker-compose.yml
+    service: burden
+  volumes:
+    - ./burden:/opt/app/burden
+  command: nodemon --watch ./burden --exec "npx colloquist server"
