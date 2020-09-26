@@ -32,7 +32,7 @@ module.exports = class extends Story {
       ]
     };
 
-    this.keep_limit = 40;
+    this.keep_limit = 5;
     this.entry_name_hier_glue_char = "__";
 
     this.path = {};
